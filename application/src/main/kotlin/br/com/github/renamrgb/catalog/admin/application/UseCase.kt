@@ -1,10 +1,5 @@
 package br.com.github.renamrgb.catalog.admin.application
 
-import br.com.github.renamrgb.catalog.admin.domain.category.Category
-
-class UseCase {
-
-    fun execute(): Category {
-        return Category()
-    }
+abstract class UseCase<IN, OUT> {
+    abstract fun execute(input: IN): OUT
 }
