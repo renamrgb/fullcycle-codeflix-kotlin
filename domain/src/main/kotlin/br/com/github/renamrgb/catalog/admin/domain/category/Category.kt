@@ -6,16 +6,17 @@ import java.time.Instant
 
 class Category private constructor(
     id: CategoryID,
-    val name: String?,
-    val description: String?,
-    val active: Boolean?,
-    val createdAt: Instant?,
-    val updatedAt: Instant?,
-    val deletedAt: Instant?
+    var name: String?,
+    var description: String?,
+    var active: Boolean?,
+    var createdAt: Instant?,
+    var updatedAt: Instant?,
+    var deletedAt: Instant?
 ) : AggregateRoot<CategoryID>(id) {
     companion object {
         fun newCategory(name: String?, description: String?, active: Boolean?): Category {
             val now = Instant.now()
+            val deletedAt = if (active!!) null else now
             return Category(
                 id = CategoryID.unique(),
                 name = name,
@@ -23,9 +24,36 @@ class Category private constructor(
                 active = active,
                 createdAt = now,
                 updatedAt = now,
-                deletedAt = null
+                deletedAt = deletedAt
             )
         }
+    }
+
+    fun deactivate(): Category = this.also {
+        val now = Instant.now()
+        if (it.deletedAt == null) {
+            it.deletedAt = now
+        }
+        it.updatedAt = now
+        it.active = false
+    }
+
+    fun activate(): Category = this.also {
+        it.deletedAt = null
+        it.active = true
+        it.updatedAt = Instant.now()
+    }
+
+
+    fun update(name: String?, description: String?, active: Boolean): Category = this.also {
+        if (active) {
+            it.activate()
+        } else {
+            it.deactivate()
+        }
+        it.name = name
+        it.description = description
+        it.updatedAt = Instant.now()
     }
 
     override fun validate(handler: ValidationHandler) {
